@@ -19,7 +19,7 @@ public class WriteClient {
             ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
             count+= socketChannel.read(byteBuffer);
             System.out.println(count);
-            byteBuffer.clear();
+//            byteBuffer.clear();
         }
     }
 }
