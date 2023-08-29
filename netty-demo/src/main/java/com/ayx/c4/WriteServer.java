@@ -11,6 +11,7 @@ import java.util.Iterator;
 public class WriteServer {
     //服务端向客户端写入大量数据
     public static void main(String[] args) throws IOException {
+
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
 
         serverSocketChannel.configureBlocking(false);
