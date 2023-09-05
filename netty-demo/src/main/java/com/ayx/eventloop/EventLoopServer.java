@@ -15,7 +15,10 @@ import java.nio.charset.Charset;
 @Slf4j
 public class EventLoopServer {
     public static void main(String[] args) {
-        new ServerBootstrap().group(new NioEventLoopGroup())
+        new ServerBootstrap()
+                //boss 和 worker
+                //boss 负责NioEventLoopGroup 的accept事件 worker负责 NioEventLoopGroup 的read事件
+                .group(new NioEventLoopGroup(),new NioEventLoopGroup(2))
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
