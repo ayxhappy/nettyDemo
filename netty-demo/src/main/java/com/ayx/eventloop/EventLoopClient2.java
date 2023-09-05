@@ -16,9 +16,10 @@ import java.util.Scanner;
 public class EventLoopClient2 {
     public static void main(String[] args) throws InterruptedException {
         //1.启动类
+        NioEventLoopGroup group = new NioEventLoopGroup();
         ChannelFuture channelFuture = new Bootstrap()
                 //2.添加EventLoop
-                .group(new NioEventLoopGroup())
+                .group(group)
                 //3.选择客户端Channel实现
                 .channel(NioSocketChannel.class)
                 //4.添加处理器
@@ -54,6 +55,7 @@ public class EventLoopClient2 {
                 if ("q".equals(s)){
                     channel.close();
 //                    System.out.println("我是关闭连接后需要执行的代码");//错误使用，因为close也是一个异步方法
+                    break;
                 }
                 channel.writeAndFlush(s);
             }
@@ -68,6 +70,7 @@ public class EventLoopClient2 {
             @Override
             public void operationComplete(ChannelFuture channelFuture) throws Exception {
                 System.out.println("我是关闭连接后需要执行的代码");
+                group.shutdownGracefully();//优雅关掉EventLoopGroup 程序就会停止了
             }
         });
 
