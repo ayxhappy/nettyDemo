@@ -1,7 +1,6 @@
 package cn.itcast.client;
 
-import cn.itcast.message.LoginRequestMessage;
-import cn.itcast.message.LoginResponseMessage;
+import cn.itcast.message.*;
 import cn.itcast.protocol.MessageCodecSharable;
 import cn.itcast.protocol.ProcotolFrameDecoder;
 import io.netty.bootstrap.Bootstrap;
@@ -17,7 +16,10 @@ import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,11 +46,11 @@ public class ChatClient {
                     ch.pipeline().addLast(LOGGING_HANDLER);
                     ch.pipeline().addLast(MESSAGE_CODEC);
                     //添加业务处理handler
-                    ch.pipeline().addLast(new ChannelInboundHandlerAdapter(){
+                    ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                         @Override
                         public void channelActive(ChannelHandlerContext ctx) throws Exception {
                             //新建一个线程用来接受用户的输入
-                            new Thread(()->{
+                            new Thread(() -> {
                                 Scanner scanner = new Scanner(System.in);
                                 System.out.println("请输入用户名：");
                                 String username = scanner.nextLine();
@@ -67,13 +69,13 @@ public class ChatClient {
                                     throw new RuntimeException(e);
                                 }
                                 //如果登录失败就退出
-                                if (!LOGIN_FLAG.get()){
+                                if (!LOGIN_FLAG.get()) {
                                     //退出
                                     ctx.channel().close();
                                     return;
                                 }
 
-                                while (true){
+                                while (true) {
                                     System.out.println("=============================");
                                     System.out.println("send [username] [content]");
                                     System.out.println("gsend [group name] [content]");
@@ -86,16 +88,45 @@ public class ChatClient {
                                     System.out.println("请输入选项：");
                                     Scanner sc = new Scanner(System.in);
                                     String input = sc.nextLine();
+
+
+                                    String[] split = input.split(" ");
+
+                                    switch (split[0]) {
+                                        case "send":
+                                            ctx.writeAndFlush(new ChatRequestMessage(username, split[1], split[2]));
+                                            break;
+                                        case "qsend":
+                                            ctx.writeAndFlush(new GroupChatRequestMessage(username, split[1], split[2]));
+                                            break;
+                                        case "gcreate":
+                                            Set<String> set = new HashSet<>(Arrays.asList(split[2]));
+                                            ctx.writeAndFlush(new GroupCreateRequestMessage(split[1], set));
+                                            break;
+                                        case "gmembers":
+                                            ctx.writeAndFlush(new GroupMembersRequestMessage(split[1]));
+                                            break;
+                                        case "gjoin":
+                                            ctx.writeAndFlush(new GroupJoinRequestMessage(username, split[1]));
+                                            break;
+                                        case "gquit":
+                                            ctx.writeAndFlush(new GroupQuitRequestMessage(username, split[1]));
+                                            break;
+                                        case "quit":
+                                            ctx.channel().close();
+                                            return;
+
+                                    }
                                 }
-                            },"user-input").start();
+                            }, "user-input").start();
                         }
 
                         //接受响应消息
                         @Override
                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                            log.info("msg:{}",msg);
+                            log.info("msg:{}", msg);
                             //拿到登录结果
-                            if(msg instanceof LoginResponseMessage){
+                            if (msg instanceof LoginResponseMessage) {
                                 boolean loginFlag = ((LoginResponseMessage) msg).isSuccess();
                                 LOGIN_FLAG.set(loginFlag);
                             }
