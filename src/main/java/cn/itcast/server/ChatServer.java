@@ -4,6 +4,8 @@ import cn.itcast.message.LoginRequestMessage;
 import cn.itcast.message.LoginResponseMessage;
 import cn.itcast.protocol.MessageCodecSharable;
 import cn.itcast.protocol.ProcotolFrameDecoder;
+import cn.itcast.server.handler.ChatRequestMessageHandler;
+import cn.itcast.server.handler.LoginHandler;
 import cn.itcast.server.service.UserServiceFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -25,6 +27,10 @@ public class ChatServer {
         NioEventLoopGroup worker = new NioEventLoopGroup();
         LoggingHandler LOGGING_HANDLER = new LoggingHandler(LogLevel.DEBUG);
         MessageCodecSharable MESSAGE_CODEC = new MessageCodecSharable();
+        //业务处理器
+        LoginHandler loginHandler = new LoginHandler();
+        ChatRequestMessageHandler  chatRequestMessageHandler = new ChatRequestMessageHandler();
+
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.channel(NioServerSocketChannel.class);
@@ -35,21 +41,9 @@ public class ChatServer {
                     ch.pipeline().addLast(new ProcotolFrameDecoder());
                     ch.pipeline().addLast(LOGGING_HANDLER);
                     ch.pipeline().addLast(MESSAGE_CODEC);
-                    ch.pipeline().addLast(new SimpleChannelInboundHandler<LoginRequestMessage>() {
-                        //接受客户端发送过来的消息
-                        @Override
-                        protected void channelRead0(ChannelHandlerContext ctx, LoginRequestMessage msg) throws Exception {
-                            boolean flag = UserServiceFactory.getUserService().login(msg.getUsername(), msg.getPassword());
-                            LoginResponseMessage message;
-                            if (flag) {
-                                message = new LoginResponseMessage(true, "登录成功");
-                                ctx.writeAndFlush(message);
-                            } else {
-                                message = new LoginResponseMessage(false, "登录失败");
-                                ctx.writeAndFlush(message);
-                            }
-                        }
-                    });
+                    ch.pipeline().addLast(loginHandler);
+                    ch.pipeline().addLast(chatRequestMessageHandler);
+
                 }
             });
             Channel channel = serverBootstrap.bind(8080).sync().channel();
