@@ -5,6 +5,7 @@ import cn.itcast.message.LoginResponseMessage;
 import cn.itcast.protocol.MessageCodecSharable;
 import cn.itcast.protocol.ProcotolFrameDecoder;
 import cn.itcast.server.handler.ChatRequestMessageHandler;
+import cn.itcast.server.handler.GroupCreateMessageHandler;
 import cn.itcast.server.handler.LoginHandler;
 import cn.itcast.server.service.UserServiceFactory;
 import io.netty.bootstrap.ServerBootstrap;
@@ -30,7 +31,7 @@ public class ChatServer {
         //业务处理器
         LoginHandler loginHandler = new LoginHandler();
         ChatRequestMessageHandler  chatRequestMessageHandler = new ChatRequestMessageHandler();
-
+        GroupCreateMessageHandler groupCreateMessageHandler = new GroupCreateMessageHandler();
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.channel(NioServerSocketChannel.class);
@@ -43,6 +44,7 @@ public class ChatServer {
                     ch.pipeline().addLast(MESSAGE_CODEC);
                     ch.pipeline().addLast(loginHandler);
                     ch.pipeline().addLast(chatRequestMessageHandler);
+                    ch.pipeline().addLast(groupCreateMessageHandler);
 
                 }
             });

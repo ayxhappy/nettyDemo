@@ -100,7 +100,7 @@ public class ChatClient {
                                             ctx.writeAndFlush(new GroupChatRequestMessage(username, split[1], split[2]));
                                             break;
                                         case "gcreate":
-                                            Set<String> set = new HashSet<>(Arrays.asList(split[2]));
+                                            Set<String> set = new HashSet<>(Arrays.asList(split[2].split(",")));
                                             ctx.writeAndFlush(new GroupCreateRequestMessage(split[1], set));
                                             break;
                                         case "gmembers":
