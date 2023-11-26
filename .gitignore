@@ -4,8 +4,12 @@
 *.target### Java template
 # Compiled class file
 *.class
-*.netty-demo
+netty-demo/.idea
+netty-demo/src
+netty-demo/target
+netty-demo/
 
+netty-demo.iml
 # Log file
 *.log
 
