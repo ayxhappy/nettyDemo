@@ -1,5 +1,6 @@
 package cn.itcast.protocol;
 
+import cn.itcast.config.SysConfig;
 import cn.itcast.message.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -35,10 +36,9 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
         // 无意义，对齐填充
         out.writeByte(0xff);
         // 6. 获取内容的字节数组
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(msg);
-        byte[] bytes = bos.toByteArray();
+
+        byte[] bytes = Serializer.SerializerImpl.values()[SysConfig.getSerializerType()].serializer(msg);
+
         // 7. 长度
         out.writeInt(bytes.length);
         // 8. 写入内容
@@ -57,9 +57,10 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
         int length = in.readInt();
         byte[] bytes = new byte[length];
         in.readBytes(bytes, 0, length);
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-        Message message = (Message) ois.readObject();
-        log.debug("{}, {}, {}, {}, {}, {}", magicNum, version, serializerType, messageType, sequenceId, length);
+        //动态选择序列化方式
+        int serializerTypeFromSys = SysConfig.getSerializerType();
+        Object message = Serializer.SerializerImpl.values()[serializerTypeFromSys].deSerializer(Message.getMessageClass(messageType), bytes);
+        //log.debug("{}, {}, {}, {}, {}, {}", magicNum, version, serializerType, messageType, sequenceId, length);
         log.debug("{}", message);
         out.add(message);
     }
