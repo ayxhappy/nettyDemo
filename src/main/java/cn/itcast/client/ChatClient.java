@@ -96,11 +96,12 @@ public class ChatClient {
                                         case "send":
                                             ctx.writeAndFlush(new ChatRequestMessage(username, split[1], split[2]));
                                             break;
-                                        case "qsend":
+                                        case "gsend":
                                             ctx.writeAndFlush(new GroupChatRequestMessage(username, split[1], split[2]));
                                             break;
                                         case "gcreate":
                                             Set<String> set = new HashSet<>(Arrays.asList(split[2].split(",")));
+                                            set.add(username);
                                             ctx.writeAndFlush(new GroupCreateRequestMessage(split[1], set));
                                             break;
                                         case "gmembers":
